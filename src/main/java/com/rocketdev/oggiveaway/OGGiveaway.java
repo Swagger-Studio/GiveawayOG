@@ -7,8 +7,9 @@ import com.rocketdev.oggiveaway.listener.ConnectionListener;
 import com.rocketdev.oggiveaway.listener.VoucherListener;
 import com.rocketdev.oggiveaway.manager.*;
 import com.rocketdev.oggiveaway.manager.ScheduleManager;
+import com.rocketdev.oggiveaway.hook.GiveawayExpansion;
 import com.rocketdev.oggiveaway.task.VoucherUpdateTask;
-import com.rocketdev.oggiveaway.utils.LoggerUtil;
+import com.rocketdev.oggiveaway.utils.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,7 +49,16 @@ public final class OGGiveaway extends JavaPlugin {
 
         this.scheduleManager.startScheduler();
 
-        LoggerUtil.log("&aOGGiveaway has been enabled successfully!");
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new GiveawayExpansion(this).register();
+        }
+
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize("&8&m---------------------------------------------"));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" &b&lGiveawayOG &bv" + getDescription().getVersion()));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" &fMade with &c❤ &fby &6Swagger Studio"));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" "));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" &a✔ Thanks for using our plugin!"));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize("&8&m---------------------------------------------"));
     }
 
     @Override
@@ -74,7 +84,9 @@ public final class OGGiveaway extends JavaPlugin {
 
         Bukkit.getScheduler().cancelTasks(this);
 
-        LoggerUtil.log("&cOGGiveaway has been disabled.");
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize("&8&m---------------------------------------------"));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" &c&lGiveawayOG &cdisabled. Goodbye!"));
+        Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize("&8&m---------------------------------------------"));
     }
 
     public static OGGiveaway getInstance() {
