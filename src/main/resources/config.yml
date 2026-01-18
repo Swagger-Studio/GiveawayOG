@@ -1,0 +1,35 @@
+settings:
+  log-to-console: false
+  min-players: 1
+  prefix: "&#3399ff&lOGGiveaway &8» &f"
+
+scheduler:
+  interval-seconds: 0  # 0 = Disabled, 3600 = 1 Hour
+
+animations:
+  blacksmith:
+    enabled: true
+    chance: 50
+  spiral:
+    enabled: true
+    chance: 50
+
+messages:
+  broadcast:
+    start:
+      - "&8&m                                                &r"
+      - " &b&l🎉 GIVEAWAY STARTED! 🎉"
+      - " "
+      - " &fRolling the dice..."
+      - " &bCheck the center of the hub!"
+      - "&8&m                                                &r"
+    winner:
+      - "&8&m                                                &r"
+      - " &b&l💎 GIVEAWAY ENDED! 💎"
+      - " "
+      - " &fThe winner is:"
+      - " &b&n%player%"
+      - "&8&m                                                &r"
+  bossbar:
+    rolling: "&b&l⚡ Choosing... &f%player%"
+    winner: "&b&l💎 WINNER: &f%player% &b&l💎"

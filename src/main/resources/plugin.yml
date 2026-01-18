@@ -1,0 +1,19 @@
+name: GiveawayOG
+version: '1.0'
+main: com.rocketdev.oggiveaway.OGGiveaway
+api-version: '1.21'
+load: STARTUP
+authors: [ SwaggerStudio - y1ash ]
+website: https://discord.gg/hZaR7zwH9Q
+description: A high-performance server-wide giveaway plugin with animations.
+softdepend: [PlaceholderAPI]
+commands:
+  giveaway:
+    description: Main command for the giveaway system.
+    usage: /giveaway <start|menu|support>
+    aliases: [give, gw]
+
+permissions:
+  giveawayog.admin:
+    description: Allows access to the admin dashboard and force-starting giveaways.
+    default: op

@@ -1,0 +1,8 @@
+settings:
+  voucher-expiry-minutes: 10
+
+pools:
+  blacksmith:
+  # Items and Commands will be saved here
+  spiral:
+  # Items and Commands will be saved here
