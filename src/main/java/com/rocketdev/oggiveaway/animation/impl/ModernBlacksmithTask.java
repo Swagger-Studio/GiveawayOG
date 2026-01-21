@@ -65,7 +65,7 @@ public class ModernBlacksmithTask extends BukkitRunnable {
             d.setTransformation(new Transformation(new Vector3f(-0.6f, 0, -0.6f), new AxisAngle4f(), new Vector3f(1.2f), new AxisAngle4f()));
         });
 
-        // Lava
+
         Vector rightVec = flatDir.clone().getCrossProduct(new Vector(0, 1, 0)).normalize();
         Location lavaLoc = center.clone().add(rightVec.multiply(-1.2));
         lava = lavaLoc.getWorld().spawn(lavaLoc, BlockDisplay.class, d -> {
@@ -74,7 +74,7 @@ public class ModernBlacksmithTask extends BukkitRunnable {
             d.setTransformation(new Transformation(new Vector3f(-0.4f, 0, -0.4f), new AxisAngle4f(), new Vector3f(0.8f), new AxisAngle4f()));
         });
 
-        // Item
+
         Location itemLoc = center.clone().add(0, 1.05, 0);
         heatedItem = itemLoc.getWorld().spawn(itemLoc, ItemDisplay.class, d -> {
             d.setItemStack(new ItemStack(Material.RAW_GOLD));
@@ -83,7 +83,7 @@ public class ModernBlacksmithTask extends BukkitRunnable {
             d.setGlowing(true); d.setGlowColorOverride(org.bukkit.Color.ORANGE);
         });
 
-        // Hammer
+
         Location hammerLoc = center.clone().add(0, 1.8, 0);
         hammer = hammerLoc.getWorld().spawn(hammerLoc, ItemDisplay.class, d -> {
             d.setItemStack(new ItemStack(Material.IRON_PICKAXE));
@@ -92,7 +92,7 @@ public class ModernBlacksmithTask extends BukkitRunnable {
         });
         currentTrans = hammer.getTransformation();
 
-        // Text
+
         statusText = center.getWorld().spawn(center.clone().add(0, 2.2, 0), TextDisplay.class, t -> {
             t.setText(ColorUtil.colorize("&6&lFORGING..."));
             t.setBillboard(Display.Billboard.CENTER);

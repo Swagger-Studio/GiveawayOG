@@ -1,9 +1,12 @@
 package com.rocketdev.oggiveaway.manager;
 
+
+
 import com.rocketdev.oggiveaway.OGGiveaway;
 import com.rocketdev.oggiveaway.animation.AnimationFactory;
 import com.rocketdev.oggiveaway.animation.WinnerRevealTask;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
+import com.rocketdev.oggiveaway.utils.DiscordWebhook;
 import com.rocketdev.oggiveaway.utils.LoggerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -57,10 +60,11 @@ public class GiveawayManager {
         isRunning = true;
         activeTasks.clear();
 
+
         Player winner = players.get(random.nextInt(players.size()));
         currentWinnerId = winner.getUniqueId();
-
         this.selectedAnimationType = plugin.getAnimationSettingsManager().pickRandomAnimation();
+
 
         if (manualOverride != null && !manualOverride.isEmpty() && manualOverride.get(0).getType() != Material.DIAMOND) {
             this.currentPrizes = manualOverride;
@@ -72,11 +76,19 @@ public class GiveawayManager {
             this.currentPrizes = Collections.singletonList(new ItemStack(Material.DIAMOND, 1));
         }
 
+
+        String prizeName = getPrizeDisplayName(currentPrizes.get(0));
+
+
         List<String> startMsgs = plugin.getConfig().getStringList("messages.broadcast.start");
         if (!startMsgs.isEmpty()) {
             LoggerUtil.broadcastBlock(startMsgs.toArray(new String[0]));
         }
         plugin.getBossBarManager().startGiveawayBar();
+
+
+        DiscordWebhook.send("start", prizeName, null, players.size());
+
 
         for(Player p : Bukkit.getOnlinePlayers()) {
             boolean isWinner = p.getUniqueId().equals(currentWinnerId);
@@ -89,6 +101,7 @@ public class GiveawayManager {
     public void onAnimationFinish(Player winner) {
         if (!isRunning) return;
 
+
         List<String> winMsgs = plugin.getConfig().getStringList("messages.broadcast.winner");
         if (!winMsgs.isEmpty()) {
             List<String> processedMsgs = new ArrayList<>();
@@ -96,17 +109,26 @@ public class GiveawayManager {
             LoggerUtil.broadcastBlock(processedMsgs.toArray(new String[0]));
         }
 
+
         List<ItemStack> activePrizes = new ArrayList<>();
         for (ItemStack item : currentPrizes) {
             activePrizes.add(stampVoucher(item.clone()));
         }
 
+
+        ItemStack finalPrizeItem = activePrizes.get(random.nextInt(activePrizes.size()));
+        String prizeName = getPrizeDisplayName(finalPrizeItem);
+
+
+        int participantCount = Bukkit.getOnlinePlayers().size();
+        DiscordWebhook.send("end", prizeName, winner.getName(), participantCount);
+
+
         if (selectedAnimationType.equals("BLACKSMITH")) {
             blacksmithManager.startForgeEvent(winner, activePrizes);
         } else {
             new WinnerRevealTask(plugin, winner).runTaskTimer(plugin, 0L, 2L);
-            ItemStack prize = activePrizes.get(random.nextInt(activePrizes.size()));
-            winner.getInventory().addItem(prize);
+            winner.getInventory().addItem(finalPrizeItem);
             endGiveaway();
         }
     }
@@ -173,5 +195,23 @@ public class GiveawayManager {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+
+    private String getPrizeDisplayName(ItemStack item) {
+        if (item == null) return "Unknown Prize";
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+            return ColorUtil.colorize(item.getItemMeta().getDisplayName());
+        }
+        return convertMaterialName(item.getType().name());
+    }
+
+    private String convertMaterialName(String materialName) {
+        String[] words = materialName.split("_");
+        StringBuilder name = new StringBuilder();
+        for (String word : words) {
+            name.append(word.charAt(0)).append(word.substring(1).toLowerCase()).append(" ");
+        }
+        return name.toString().trim();
     }
 }

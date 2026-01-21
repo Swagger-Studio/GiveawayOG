@@ -114,7 +114,7 @@ public class ModernSlotTask extends BukkitRunnable {
         asyncTask = new BukkitRunnable() {
             private final Vector dirCache = new Vector();
             private final Vector leftCache = new Vector();
-            private final Location calcLoc = tempPlayerLoc.clone(); // Separate location object for math
+            private final Location calcLoc = tempPlayerLoc.clone();
 
             @Override
             public void run() {
@@ -132,18 +132,18 @@ public class ModernSlotTask extends BukkitRunnable {
 
                 Location center = calcLoc.clone().add(0, 2.6, 0);
 
-                // Vector math
-                dirCache.setX(Math.cos(Math.toRadians(calcLoc.getYaw() + 90))); // Manual trig is safer async than getDirection()
-                dirCache.setZ(Math.sin(Math.toRadians(calcLoc.getYaw() + 90)));
-                dirCache.setY(0).normalize(); // Front direction
 
-                // Calculate Left Vector
-                leftCache.setX(dirCache.getZ()).setY(0).setZ(-dirCache.getX()); // Quick Cross Product math
+                dirCache.setX(Math.cos(Math.toRadians(calcLoc.getYaw() + 90)));
+                dirCache.setZ(Math.sin(Math.toRadians(calcLoc.getYaw() + 90)));
+                dirCache.setY(0).normalize();
+
+
+                leftCache.setX(dirCache.getZ()).setY(0).setZ(-dirCache.getX());
 
                 Location left = center.clone().add(leftCache.getX() * 0.8, leftCache.getY() * 0.8, leftCache.getZ() * 0.8);
                 Location right = center.clone().subtract(leftCache.getX() * 0.8, leftCache.getY() * 0.8, leftCache.getZ() * 0.8);
 
-                // Text & Item
+
                 Location text = center.clone().add(0, 0.7, 0);
                 Location item = center.clone().add(0, 1.1, 0);
                 float itemYaw = (ticks * 10) % 360;

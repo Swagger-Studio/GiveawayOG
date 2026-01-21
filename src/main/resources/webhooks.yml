@@ -1,0 +1,19 @@
+# Discord Webhook Settings for GiveawayOG
+
+
+webhook-settings:
+  enabled: true
+  url: "REPLACE_WITH_YOUR_WEBHOOK_URL"
+
+messages:
+  # Message sent when a giveaway starts
+  start:
+    title: "🎉 Giveaway Started!"
+    description: "A new giveaway event has just started!"
+    color: 5763719 # Green
+
+  # Message sent when a winner is picked
+  end:
+    title: "🏆 We Have a Winner!"
+    description: "Congratulations to **%player%** for winning **%prize%**!"
+    color: 16776960 # Gold/Yellow

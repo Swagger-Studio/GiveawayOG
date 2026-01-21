@@ -1,5 +1,8 @@
 package com.rocketdev.oggiveaway.commands;
 
+
+
+import com.rocketdev.oggiveaway.config.WebhookConfig;
 import com.rocketdev.oggiveaway.OGGiveaway;
 import com.rocketdev.oggiveaway.gui.AdminGUI;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
@@ -15,6 +18,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 public class MainCommand implements TabExecutor {
 
@@ -91,7 +95,8 @@ public class MainCommand implements TabExecutor {
             case "reload":
                 if (player.hasPermission("giveawayog.admin")) {
                     plugin.getConfigManager().reload();
-                    player.sendMessage(ColorUtil.colorize("&a&l✔ Configuration Reloaded!"));
+                    WebhookConfig.reload();
+                    player.sendMessage(ColorUtil.colorize("&a&l✔ Configuration & Webhooks Reloaded!"));
                 }
                 break;
 
@@ -101,6 +106,7 @@ public class MainCommand implements TabExecutor {
 
         return true;
     }
+
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
