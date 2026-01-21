@@ -1,5 +1,5 @@
 name: GiveawayOG
-version: '1.1'
+version: '1.1.1'
 main: com.rocketdev.oggiveaway.OGGiveaway
 api-version: '1.21'
 load: STARTUP

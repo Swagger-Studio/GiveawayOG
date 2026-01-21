@@ -1,10 +1,6 @@
 package com.rocketdev.oggiveaway.gui;
 
-
-
-
 import com.rocketdev.oggiveaway.OGGiveaway;
-import com.rocketdev.oggiveaway.gui.AdminGUI;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -36,17 +32,14 @@ public class GUIListener implements Listener {
         Player p = (Player) e.getWhoClicked();
         ItemStack clicked = e.getCurrentItem();
 
-
         if (title.contains("GiveawayOG Settings")) {
             e.setCancelled(true);
             if (clicked == null || clicked.getType() == Material.AIR) return;
 
             Material mat = clicked.getType();
 
-
             if (mat == Material.CLOCK) {
                 long currentSeconds = plugin.getConfig().getLong("scheduler.interval-seconds", 0);
-
 
                 if (e.getClick().isShiftClick()) {
                     if (currentSeconds > 0) {
@@ -56,56 +49,46 @@ public class GUIListener implements Listener {
                         currentSeconds = 3600;
                         p.sendMessage(ColorUtil.colorize("&a&lScheduler Enabled (60m)!"));
                     }
-                }
-
-                else if (e.getClick().isLeftClick()) {
+                } else if (e.getClick().isLeftClick()) {
                     currentSeconds += 300;
-                }
-
-                else if (e.getClick().isRightClick()) {
+                } else if (e.getClick().isRightClick()) {
                     currentSeconds -= 300;
                 }
 
-
                 if (currentSeconds < 0) currentSeconds = 0;
 
-
                 plugin.getScheduleManager().setInterval(currentSeconds);
-
                 playSound(p);
                 AdminGUI.openDashboard(p, plugin);
-            }
 
-            else if (mat == Material.EMERALD_BLOCK) {
+            } else if (mat == Material.EMERALD_BLOCK) {
                 p.closeInventory();
                 plugin.getGiveawayManager().startGiveaway(null);
-            }
-            else if (mat == Material.REDSTONE_BLOCK) {
+
+            } else if (mat == Material.REDSTONE_BLOCK) {
                 p.closeInventory();
                 plugin.getGiveawayManager().cancelGiveaway();
-            }
-            else if (mat == Material.COMPARATOR) {
+
+            } else if (mat == Material.COMPARATOR) {
                 AdminGUI.openAnimationSettings(p, plugin);
                 playSound(p);
-            }
-            else if (mat == Material.CHEST) {
+
+            } else if (mat == Material.CHEST) {
                 AdminGUI.openPoolSelector(p);
                 playSound(p);
-            }
-            else if (mat == Material.PAPER) {
+
+            } else if (mat == Material.PAPER) {
                 p.closeInventory();
                 p.sendMessage(ColorUtil.colorize("&d&lINFO: &fUse /gw createvoucher <command>"));
-            }
-            else if (mat == Material.NETHER_STAR) {
-                plugin.reloadConfig();
+
+            } else if (mat == Material.NETHER_STAR) {
+                plugin.getConfigManager().reload();
                 plugin.getPrizeManager().loadPrizes();
                 p.sendMessage(ColorUtil.colorize("&a&l✔ Reloaded!"));
                 playSound(p);
                 AdminGUI.openDashboard(p, plugin);
-            }
 
-
-            else if (mat == Material.PLAYER_HEAD) {
+            } else if (mat == Material.PLAYER_HEAD) {
                 int current = plugin.getConfig().getInt("settings.min-players", 1);
                 if (e.getClick().isLeftClick()) current++;
                 if (e.getClick().isRightClick()) current--;
@@ -117,8 +100,6 @@ public class GUIListener implements Listener {
                 AdminGUI.openDashboard(p, plugin);
             }
         }
-
-
         else if (title.contains("Animation Config")) {
             e.setCancelled(true);
             if (clicked == null || clicked.getType() == Material.AIR) return;
@@ -128,10 +109,11 @@ public class GUIListener implements Listener {
                 return;
             }
 
-            if (clicked.getType() == Material.ANVIL) toggleSetting(p, "animations.blacksmith.enabled");
-            else if (clicked.getType() == Material.BEACON) toggleSetting(p, "animations.spiral.enabled");
-
-            else if (clicked.getType() == Material.GOLD_NUGGET) {
+            if (clicked.getType() == Material.ANVIL) {
+                toggleSetting(p, "animations.blacksmith.enabled");
+            } else if (clicked.getType() == Material.BEACON) {
+                toggleSetting(p, "animations.spiral.enabled");
+            } else if (clicked.getType() == Material.GOLD_NUGGET) {
                 ItemMeta meta = clicked.getItemMeta();
                 if (meta == null) return;
 
@@ -153,16 +135,13 @@ public class GUIListener implements Listener {
                 AdminGUI.openAnimationSettings(p, plugin);
             }
         }
-
-
         else if (title.contains("Select Pool")) {
             e.setCancelled(true);
             if (clicked == null) return;
             if (clicked.getType() == Material.ARROW) AdminGUI.openDashboard(p, plugin);
             else if (clicked.getType() == Material.ANVIL) AdminGUI.openPrizeEditor(p, plugin, "blacksmith");
             else if (clicked.getType() == Material.BEACON) AdminGUI.openPrizeEditor(p, plugin, "spiral");
-        }
-        else if (title.contains("Editing:")) {
+        } else if (title.contains("Editing:")) {
             boolean isTopInv = e.getClickedInventory().equals(e.getView().getTopInventory());
             if (isTopInv && clicked != null) {
                 if (clicked.getType() == Material.LIME_DYE && e.getSlot() == 53) {
@@ -191,6 +170,19 @@ public class GUIListener implements Listener {
 
     private void toggleSetting(Player p, String path) {
         boolean current = plugin.getConfig().getBoolean(path);
+
+        if (current) {
+            int enabledCount = 0;
+            if (plugin.getConfig().getBoolean("animations.blacksmith.enabled")) enabledCount++;
+            if (plugin.getConfig().getBoolean("animations.spiral.enabled")) enabledCount++;
+
+            if (enabledCount <= 1) {
+                p.sendMessage(ColorUtil.colorize("&c⚠ You must have at least one animation enabled!"));
+                p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                return;
+            }
+        }
+
         plugin.getConfig().set(path, !current);
         plugin.saveConfig();
         p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1.5f);
