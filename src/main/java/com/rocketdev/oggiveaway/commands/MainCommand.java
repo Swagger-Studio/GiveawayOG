@@ -1,7 +1,5 @@
 package com.rocketdev.oggiveaway.commands;
 
-
-
 import com.rocketdev.oggiveaway.config.WebhookConfig;
 import com.rocketdev.oggiveaway.OGGiveaway;
 import com.rocketdev.oggiveaway.gui.AdminGUI;
@@ -19,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 public class MainCommand implements TabExecutor {
 
     private final OGGiveaway plugin;
@@ -30,15 +27,9 @@ public class MainCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Players only!");
-            return true;
-        }
-
-        Player player = (Player) sender;
 
         if (args.length == 0) {
-            sendHelpMenu(player);
+            sendHelpMenu(sender);
             return true;
         }
 
@@ -47,66 +38,71 @@ public class MainCommand implements TabExecutor {
         switch (sub) {
             case "menu":
             case "gui":
-                if (player.hasPermission("giveawayog.admin")) {
-                    AdminGUI.openDashboard(player, plugin);
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
+                    if (player.hasPermission("giveawayog.admin")) {
+                        AdminGUI.openDashboard(player, plugin);
+                    } else {
+                        player.sendMessage(ColorUtil.colorize("&cNo permission."));
+                    }
                 } else {
-                    player.sendMessage(ColorUtil.colorize("&cNo permission."));
+                    sender.sendMessage(ColorUtil.colorize("&cThis command is for players only."));
                 }
                 break;
 
             case "start":
-                if (player.hasPermission("giveawayog.admin")) {
+                if (sender.hasPermission("giveawayog.admin")) {
                     plugin.getGiveawayManager().startGiveaway(null);
+                    sender.sendMessage(ColorUtil.colorize("&aGiveaway started successfully!"));
                 } else {
-                    player.sendMessage(ColorUtil.colorize("&cNo permission."));
+                    sender.sendMessage(ColorUtil.colorize("&cNo permission."));
                 }
                 break;
 
             case "createvoucher":
             case "cv":
-                if (player.hasPermission("giveawayog.admin")) {
+                if (sender.hasPermission("giveawayog.admin")) {
                     if (args.length < 3) {
-                        player.sendMessage(ColorUtil.colorize("&cUsage: /gw createvoucher <pool> <command>"));
-                        player.sendMessage(ColorUtil.colorize("&7Pools: blacksmith, spiral"));
+                        sender.sendMessage(ColorUtil.colorize("&cUsage: /gw createvoucher <pool> <command>"));
+                        sender.sendMessage(ColorUtil.colorize("&7Pools: blacksmith, spiral"));
                         return true;
                     }
 
                     String pool = args[1].toLowerCase();
                     if (!pool.equals("blacksmith") && !pool.equals("spiral")) {
-                        player.sendMessage(ColorUtil.colorize("&c⚠ Unknown pool '" + pool + "'. Using 'blacksmith' by default."));
+                        sender.sendMessage(ColorUtil.colorize("&c⚠ Unknown pool '" + pool + "'. Using 'blacksmith' by default."));
                         pool = "blacksmith";
                     }
 
                     String cmdStr = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
 
                     plugin.getPrizeManager().addCommandPrize(pool, cmdStr);
-                    player.sendMessage(ColorUtil.colorize("&a&l✔ Voucher added to '" + pool + "' pool!"));
+                    sender.sendMessage(ColorUtil.colorize("&a&l✔ Voucher added to '" + pool + "' pool!"));
                 } else {
-                    player.sendMessage(ColorUtil.colorize("&cNo permission."));
+                    sender.sendMessage(ColorUtil.colorize("&cNo permission."));
                 }
                 break;
 
             case "support":
             case "discord":
             case "bug":
-                sendSupportMessage(player);
+                sendSupportMessage(sender);
                 break;
 
             case "reload":
-                if (player.hasPermission("giveawayog.admin")) {
+                if (sender.hasPermission("giveawayog.admin")) {
                     plugin.getConfigManager().reload();
                     WebhookConfig.reload();
-                    player.sendMessage(ColorUtil.colorize("&a&l✔ Configuration & Webhooks Reloaded!"));
+                    sender.sendMessage(ColorUtil.colorize("&a&l✔ Configuration & Webhooks Reloaded!"));
                 }
                 break;
 
             default:
-                player.sendMessage(ColorUtil.colorize("&cUnknown command. Try /giveaway"));
+                sender.sendMessage(ColorUtil.colorize("&cUnknown command. Try /giveaway"));
         }
 
         return true;
     }
-
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -132,27 +128,31 @@ public class MainCommand implements TabExecutor {
         return completions;
     }
 
-    private void sendHelpMenu(Player player) {
-        player.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
-        player.sendMessage(ColorUtil.colorize("&b&lGiveaway System &7- &fCommands"));
-        player.sendMessage(ColorUtil.colorize("&b/gw menu &7- Open Dashboard"));
-        player.sendMessage(ColorUtil.colorize("&b/gw start &7- Force start"));
-        player.sendMessage(ColorUtil.colorize("&b/gw cv <pool> <cmd> &7- Create voucher"));
-        player.sendMessage(ColorUtil.colorize("&b/gw reload &7- Reload config"));
-        player.sendMessage(ColorUtil.colorize("&b/gw support &7- Get help"));
-        player.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
+    private void sendHelpMenu(CommandSender sender) {
+        sender.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
+        sender.sendMessage(ColorUtil.colorize("&b&lGiveaway System &7- &fCommands"));
+        sender.sendMessage(ColorUtil.colorize("&b/gw menu &7- Open Dashboard"));
+        sender.sendMessage(ColorUtil.colorize("&b/gw start &7- Force start"));
+        sender.sendMessage(ColorUtil.colorize("&b/gw cv <pool> <cmd> &7- Create voucher"));
+        sender.sendMessage(ColorUtil.colorize("&b/gw reload &7- Reload config"));
+        sender.sendMessage(ColorUtil.colorize("&b/gw support &7- Get help"));
+        sender.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
     }
 
-    private void sendSupportMessage(Player player) {
-        player.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
-        player.sendMessage(ColorUtil.colorize("&b&lSwagger Studio Support"));
-        player.sendMessage(ColorUtil.colorize("&7Found a bug? Need help? Join our Discord!"));
+    private void sendSupportMessage(CommandSender sender) {
+        sender.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
+        sender.sendMessage(ColorUtil.colorize("&b&lSwagger Studio Support"));
+        sender.sendMessage(ColorUtil.colorize("&7Found a bug? Need help? Join our Discord!"));
 
-        TextComponent message = new TextComponent(ColorUtil.colorize("&9&nClick to Join Discord"));
-        message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/hZaR7zwH9Q"));
-        message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to open!").create()));
+        if (sender instanceof Player) {
+            TextComponent message = new TextComponent(ColorUtil.colorize("&9&nClick to Join Discord"));
+            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/hZaR7zwH9Q"));
+            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to open!").create()));
+            ((Player) sender).spigot().sendMessage(message);
+        } else {
+            sender.sendMessage(ColorUtil.colorize("&9https://discord.gg/hZaR7zwH9Q"));
+        }
 
-        player.spigot().sendMessage(message);
-        player.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
+        sender.sendMessage(ColorUtil.colorize("&8&m-----------------------------"));
     }
 }

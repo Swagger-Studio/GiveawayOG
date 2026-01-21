@@ -51,7 +51,7 @@ public final class OGGiveaway extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(new VoucherListener(this), this);
         Bukkit.getPluginManager().registerEvents(new ConnectionListener(this), this);
-
+        getServer().getPluginManager().registerEvents(new com.rocketdev.oggiveaway.listener.UpdateListener(this), this);
 
         new VoucherUpdateTask(this).runTaskTimer(this, 0L, 20L);
         this.scheduleManager.startScheduler();

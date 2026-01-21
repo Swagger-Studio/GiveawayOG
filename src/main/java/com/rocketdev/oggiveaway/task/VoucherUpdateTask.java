@@ -2,8 +2,8 @@ package com.rocketdev.oggiveaway.task;
 
 import com.rocketdev.oggiveaway.OGGiveaway;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -20,11 +20,9 @@ import java.util.List;
 
 public class VoucherUpdateTask extends BukkitRunnable {
 
-    private final OGGiveaway plugin;
     private final NamespacedKey expKey;
 
     public VoucherUpdateTask(OGGiveaway plugin) {
-        this.plugin = plugin;
         this.expKey = new NamespacedKey(plugin, "expiry");
     }
 
@@ -46,7 +44,10 @@ public class VoucherUpdateTask extends BukkitRunnable {
                 PersistentDataContainer pdc = meta.getPersistentDataContainer();
 
                 if (pdc.has(expKey, PersistentDataType.LONG)) {
-                    long expiryTime = pdc.get(expKey, PersistentDataType.LONG);
+                    Long expiryTimeObj = pdc.get(expKey, PersistentDataType.LONG);
+                    if (expiryTimeObj == null) continue;
+                    long expiryTime = expiryTimeObj;
+
                     long timeLeftMillis = expiryTime - now;
 
                     if (timeLeftMillis <= 0) {
@@ -57,22 +58,31 @@ public class VoucherUpdateTask extends BukkitRunnable {
                     }
 
                     long secondsTotal = timeLeftMillis / 1000;
-                    String timeString = String.format("%02d:%02d", secondsTotal / 60, secondsTotal % 60);
+                    LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
 
-                    List<String> lore = meta.getLore();
-                    if (lore != null && lore.size() >= 2) {
-                        String newLoreLine = ColorUtil.colorize("&7Expires in: &e" + timeString);
-                        if (!lore.get(1).equals(newLoreLine)) {
-                            lore.set(1, newLoreLine);
-                            meta.setLore(lore);
+                    long minutesLeft = (secondsTotal / 60) + 1;
+                    String timeString = minutesLeft + "m";
+
+                    List<Component> currentLore = meta.lore();
+
+                    if (currentLore != null && currentLore.size() >= 2) {
+                        String newLoreString = ColorUtil.colorize("&7Expires in: &e" + timeString);
+                        Component newLoreComponent = serializer.deserialize(newLoreString);
+
+                        String oldLoreString = serializer.serialize(currentLore.get(1));
+
+                        if (!oldLoreString.equals(newLoreString)) {
+                            currentLore.set(1, newLoreComponent);
+                            meta.lore(currentLore);
                             item.setItemMeta(meta);
                         }
                     }
 
                     boolean isHolding = item.equals(mainHand) || item.equals(offHand);
                     if (isHolding) {
-                        String msg = ColorUtil.colorize("&6⏳ Voucher Expires in: &e" + timeString);
-                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(msg));
+                        String actionBarTime = String.format("%02d:%02d", secondsTotal / 60, secondsTotal % 60);
+                        String msg = ColorUtil.colorize("&6⏳ Voucher Expires in: &e" + actionBarTime);
+                        p.sendActionBar(serializer.deserialize(msg));
                     }
                 }
             }

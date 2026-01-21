@@ -1,14 +1,15 @@
 package com.rocketdev.oggiveaway.manager;
 
-
-
 import com.rocketdev.oggiveaway.OGGiveaway;
 import com.rocketdev.oggiveaway.animation.AnimationFactory;
 import com.rocketdev.oggiveaway.animation.WinnerRevealTask;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
 import com.rocketdev.oggiveaway.utils.DiscordWebhook;
 import com.rocketdev.oggiveaway.utils.LoggerUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -30,6 +31,7 @@ public class GiveawayManager {
     private final OGGiveaway plugin;
     private final Random random = new Random();
     private final BlacksmithManager blacksmithManager;
+    private final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
 
     public static boolean isRunning = false;
     private UUID currentWinnerId;
@@ -57,14 +59,18 @@ public class GiveawayManager {
             return;
         }
 
+        Player winner = pickRandomWinner(players);
+
+        if (winner == null) {
+            LoggerUtil.broadcast("&c⚠ Giveaway cancelled! No eligible players found.");
+            return;
+        }
+
         isRunning = true;
         activeTasks.clear();
 
-
-        Player winner = players.get(random.nextInt(players.size()));
         currentWinnerId = winner.getUniqueId();
         this.selectedAnimationType = plugin.getAnimationSettingsManager().pickRandomAnimation();
-
 
         if (manualOverride != null && !manualOverride.isEmpty() && manualOverride.get(0).getType() != Material.DIAMOND) {
             this.currentPrizes = manualOverride;
@@ -76,9 +82,7 @@ public class GiveawayManager {
             this.currentPrizes = Collections.singletonList(new ItemStack(Material.DIAMOND, 1));
         }
 
-
         String prizeName = getPrizeDisplayName(currentPrizes.get(0));
-
 
         List<String> startMsgs = plugin.getConfig().getStringList("messages.broadcast.start");
         if (!startMsgs.isEmpty()) {
@@ -86,9 +90,7 @@ public class GiveawayManager {
         }
         plugin.getBossBarManager().startGiveawayBar();
 
-
         DiscordWebhook.send("start", prizeName, null, players.size());
-
 
         for(Player p : Bukkit.getOnlinePlayers()) {
             boolean isWinner = p.getUniqueId().equals(currentWinnerId);
@@ -98,9 +100,21 @@ public class GiveawayManager {
         }
     }
 
+    private Player pickRandomWinner(List<Player> allPlayers) {
+        List<Player> eligible = new ArrayList<>();
+        for (Player p : allPlayers) {
+            if (p.getGameMode() == GameMode.SPECTATOR) continue;
+            if (p.hasPermission("giveaway.exempt")) continue;
+            if (p.hasMetadata("vanished")) continue;
+            eligible.add(p);
+        }
+
+        if (eligible.isEmpty()) return null;
+        return eligible.get(random.nextInt(eligible.size()));
+    }
+
     public void onAnimationFinish(Player winner) {
         if (!isRunning) return;
-
 
         List<String> winMsgs = plugin.getConfig().getStringList("messages.broadcast.winner");
         if (!winMsgs.isEmpty()) {
@@ -109,20 +123,16 @@ public class GiveawayManager {
             LoggerUtil.broadcastBlock(processedMsgs.toArray(new String[0]));
         }
 
-
         List<ItemStack> activePrizes = new ArrayList<>();
         for (ItemStack item : currentPrizes) {
             activePrizes.add(stampVoucher(item.clone()));
         }
 
-
         ItemStack finalPrizeItem = activePrizes.get(random.nextInt(activePrizes.size()));
         String prizeName = getPrizeDisplayName(finalPrizeItem);
 
-
         int participantCount = Bukkit.getOnlinePlayers().size();
         DiscordWebhook.send("end", prizeName, winner.getName(), participantCount);
-
 
         if (selectedAnimationType.equals("BLACKSMITH")) {
             blacksmithManager.startForgeEvent(winner, activePrizes);
@@ -183,25 +193,35 @@ public class GiveawayManager {
         NamespacedKey expKey = new NamespacedKey(plugin, "expiry");
 
         if (meta.getPersistentDataContainer().has(durKey, PersistentDataType.INTEGER)) {
-            int minutes = meta.getPersistentDataContainer().get(durKey, PersistentDataType.INTEGER);
-            long expiryTime = System.currentTimeMillis() + (minutes * 60 * 1000L);
-            meta.getPersistentDataContainer().set(expKey, PersistentDataType.LONG, expiryTime);
+            Integer minutesObj = meta.getPersistentDataContainer().get(durKey, PersistentDataType.INTEGER);
+            if (minutesObj != null) {
+                int minutes = minutesObj;
+                long expiryTime = System.currentTimeMillis() + (minutes * 60 * 1000L);
+                meta.getPersistentDataContainer().set(expKey, PersistentDataType.LONG, expiryTime);
 
-            List<String> lore = meta.getLore();
-            if (lore != null && lore.size() >= 2) {
-                lore.set(1, ColorUtil.colorize("&7Expires in: &e" + minutes + "m 00s"));
-                meta.setLore(lore);
+                List<Component> lore = meta.lore();
+                if (lore == null) lore = new ArrayList<>();
+
+                if (lore.size() >= 2) {
+                    lore.set(1, serializer.deserialize(ColorUtil.colorize("&7Expires in: &e" + minutes + "m 00s")));
+                    meta.lore(lore);
+                }
+                item.setItemMeta(meta);
             }
-            item.setItemMeta(meta);
         }
         return item;
     }
 
-
     private String getPrizeDisplayName(ItemStack item) {
         if (item == null) return "Unknown Prize";
-        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-            return ColorUtil.colorize(item.getItemMeta().getDisplayName());
+        if (item.hasItemMeta()) {
+            Component displayName = item.getItemMeta().displayName();
+            if (displayName != null) {
+                return serializer.serialize(displayName);
+            }
+            if (item.getItemMeta().hasDisplayName()) {
+                return ColorUtil.colorize(item.getItemMeta().getDisplayName());
+            }
         }
         return convertMaterialName(item.getType().name());
     }
