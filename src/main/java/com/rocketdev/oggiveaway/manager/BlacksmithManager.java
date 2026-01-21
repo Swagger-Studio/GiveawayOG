@@ -18,7 +18,7 @@ import java.util.UUID;
 public class BlacksmithManager implements Listener {
 
     private final OGGiveaway plugin;
-    // Maps Player UUID -> The 'forceEnd' method of their task
+    
     private final Map<UUID, Runnable> activeSessions = new HashMap<>();
 
     public BlacksmithManager(OGGiveaway plugin) {
@@ -40,14 +40,14 @@ public class BlacksmithManager implements Listener {
         }
     }
 
-    // --- FIX: INFINITE LOOP PREVENTION ---
+    
     public void cleanup(UUID uuid) {
-        // 1. Remove from Map FIRST
+        
         Runnable stopTask = activeSessions.remove(uuid);
 
-        // 2. Only run the stop logic if it existed
+        
         if (stopTask != null) {
-            stopTask.run(); // This calls task.forceEnd()
+            stopTask.run(); 
         }
     }
 
