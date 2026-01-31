@@ -2,7 +2,7 @@ package com.rocketdev.oggiveaway;
 
 import com.rocketdev.oggiveaway.commands.MainCommand;
 import com.rocketdev.oggiveaway.config.ConfigManager;
-import com.rocketdev.oggiveaway.config.WebhookConfig; // <--- ADDED IMPORT
+import com.rocketdev.oggiveaway.config.WebhookConfig;
 import com.rocketdev.oggiveaway.gui.GUIListener;
 import com.rocketdev.oggiveaway.listener.ConnectionListener;
 import com.rocketdev.oggiveaway.listener.VoucherListener;
@@ -10,6 +10,7 @@ import com.rocketdev.oggiveaway.manager.*;
 import com.rocketdev.oggiveaway.hook.GiveawayExpansion;
 import com.rocketdev.oggiveaway.task.VoucherUpdateTask;
 import com.rocketdev.oggiveaway.utils.ColorUtil;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,13 +30,10 @@ public final class OGGiveaway extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-
         this.configManager = new ConfigManager(this);
         this.configManager.loadConfig();
 
-
         WebhookConfig.setup();
-
 
         this.animationSettingsManager = new AnimationSettingsManager(this);
         this.bossBarManager = new BossBarManager(this);
@@ -43,10 +41,8 @@ public final class OGGiveaway extends JavaPlugin {
         this.giveawayManager = new GiveawayManager(this);
         this.scheduleManager = new ScheduleManager(this);
 
-
         getCommand("giveaway").setExecutor(new MainCommand(this));
         getCommand("giveaway").setTabCompleter(new MainCommand(this));
-
 
         Bukkit.getPluginManager().registerEvents(new GUIListener(this), this);
         Bukkit.getPluginManager().registerEvents(new VoucherListener(this), this);
@@ -56,11 +52,12 @@ public final class OGGiveaway extends JavaPlugin {
         new VoucherUpdateTask(this).runTaskTimer(this, 0L, 20L);
         this.scheduleManager.startScheduler();
 
+        int pluginId = 29298;
+        new Metrics(this, pluginId);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new GiveawayExpansion(this).register();
         }
-
 
         Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize("&8&m---------------------------------------------"));
         Bukkit.getConsoleSender().sendMessage(ColorUtil.colorize(" &b&lGiveawayOG &bv" + getDescription().getVersion()));
@@ -83,7 +80,6 @@ public final class OGGiveaway extends JavaPlugin {
         if (scheduleManager != null) {
             scheduleManager.stopScheduler();
         }
-
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             String title = p.getOpenInventory().getTitle();
