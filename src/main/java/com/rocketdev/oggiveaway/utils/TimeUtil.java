@@ -14,7 +14,7 @@ public class TimeUtil {
 
     public static boolean isSameMinute(ZonedDateTime now, String targetStr) {
         try {
-            // Target format: dd/MM/yyyy HH:mm
+            
             String nowStr = now.format(FORMATTER);
             return nowStr.equals(targetStr);
         } catch (Exception e) {
